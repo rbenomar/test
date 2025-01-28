@@ -11,7 +11,6 @@ def generate_flow_run_name():
       log_prints=True, 
       cache_key_fn=task_input_hash,
       cache_expiration=timedelta(hours=24))
-@task
 def custom_task(name: str):
     print(f"Executing task: {name}")
     return f"Result from {name}"
