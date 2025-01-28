@@ -1,22 +1,24 @@
 import pandas as pd
 from prefect import flow, task
+from datetime import datetime
 
-@task(task_run_name="Task for {name}")
+@task(task_run_name="Task for {name}", log_prints=True)
 @task
 def custom_task(name: str):
     print(f"Executing task: {name}")
 
-@flow(flow_run_name="Sub flow for {name}")
+@flow(flow_run_name="Sub flow for {name}", log_prints=True)
 def subflow(name: str):
     print(f"Executing subflow: {name}")
     custom_task(name=f"{name}_task")
 
-@flow(flow_run_name="Main flow for {category}")
+@flow(flow_run_name="Main flow for {category}", log_prints=True)
 def main_flow(category: str, value: float):
+    print(f"Executing main flow for {category} with value: {value}")    
     subflow(name=f"{category}_{value}")
 
-@flow
-def parent_flow():
+@flow(flow_run_name="Custom run {timestamp}", log_prints=True)
+def parent_flow(timestamp: str):
     # Create a sample dataset
     df = pd.DataFrame({
         'category': ['A', 'B', 'C', 'D'],
@@ -28,16 +30,5 @@ def parent_flow():
         main_flow(category=row['category'], value=row['value'])
 
 if __name__ == "__main__":
-    parent_flow()
-
-
-# prefect deploy test.py:parent_flow -n "DataFrameIteration" -p test
-
-
-#   After creating the deployment, you can run it using:
-
-# prefect deployment run "parent_flow/DataFrameIteration"
-
-
-#  If you want to schedule the deployment to run periodically, you can add a schedule when creating the deployment:
-# prefect deploy test.py:parent_flow -n "DataFrameIteration" -p default-agent-pool --cron "0 0 * * *"
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    parent_flow(timestamp)
