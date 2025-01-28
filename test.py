@@ -31,4 +31,4 @@ def parent_flow(timestamp: str):
 
 if __name__ == "__main__":
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    parent_flow(timestamp)
+    parent_flow(timestamp=timestamp)
