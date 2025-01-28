@@ -1,16 +1,17 @@
 import pandas as pd
 from prefect import flow, task
-from prefect.tasks import task_input_hash
 from datetime import timedelta
 from datetime import datetime
 
 def generate_flow_run_name():
     return f"Custom run {datetime.now().strftime('%Y%m%d%H%M%S')}"
 
-@task(task_run_name="Task for {name}", 
-      log_prints=True, 
-      cache_key_fn=task_input_hash,
-      cache_expiration=timedelta(hours=24))
+@task(
+    task_run_name="Task for {name}",
+    log_prints=True,
+    cache_key_fn=lambda context, parameters: f"custom_task-{parameters['name']}",
+    cache_expiration=timedelta(minutes=5)
+)
 def custom_task(name: str):
     print(f"Executing task: {name}")
     return f"Result from {name}"
@@ -44,3 +45,14 @@ def parent_flow():
 
 if __name__ == "__main__":
     parent_flow()
+
+# prefect deploy test.py:parent_flow -n "DataFrameIteration" -p test
+
+
+#   After creating the deployment, you can run it using:
+
+# prefect deployment run "parent_flow/DataFrameIteration"
+
+
+#  If you want to schedule the deployment to run periodically, you can add a schedule when creating the deployment:
+# prefect deploy test.py:parent_flow -n "DataFrameIteration" -p default-agent-pool --cron "0 0 * * *"
